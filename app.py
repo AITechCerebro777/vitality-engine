@@ -7,13 +7,20 @@ from datetime import datetime, date
 # --- CONFIGURATION ---
 st.set_page_config(page_title="Vitality Engine", page_icon="⚡", layout="wide")
 SCOPE = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
-KEY_FILE = "vitality_key.json"
 SHEET_NAME = "Vitality_Engine_DB"
 TAB_NAME = "Daily_Logs"
 
 # --- BACKEND FUNCTIONS ---
 def get_connection():
-    creds = ServiceAccountCredentials.from_json_keyfile_name(KEY_FILE, SCOPE)
+    """Connects to Google Sheets (Handles both Cloud and Local)"""
+    try:
+        # 1. Try to grab credentials from Streamlit Cloud Secrets
+        creds_dict = st.secrets["gcp_service_account"]
+        creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, SCOPE)
+    except:
+        # 2. Fallback to Local File (for your laptop)
+        creds = ServiceAccountCredentials.from_json_keyfile_name("vitality_key.json", SCOPE)
+    
     client = gspread.authorize(creds)
     return client.open(SHEET_NAME).worksheet(TAB_NAME)
 
@@ -24,7 +31,6 @@ def load_data():
 
 def save_entry(date_val, weight, calories, wake, med, caff, work, fast, sleep, energy, notes):
     sheet = get_connection()
-    # Format data for the sheet
     new_row = [str(date_val), weight, calories, str(wake), med, caff, work, fast, str(sleep), energy, notes]
     sheet.append_row(new_row)
 
@@ -40,11 +46,9 @@ with st.sidebar:
     retreat_date = date(2026, 5, 11)
     
     days_to_sbmt = (sbmt_date - today).days
-    days_to_retreat = (retreat_date - today).days
     
     st.divider()
     st.metric(label="⏳ Days to SBMT (Los Angeles)", value=days_to_sbmt)
-    st.metric(label="🧘 Days to Dispenza Retreat", value=days_to_retreat)
     st.divider()
     st.info("Target Weight: **185 lbs**")
 
@@ -69,14 +73,13 @@ with st.form("entry_form", clear_on_submit=True):
 
     with col3:
         st.markdown("**Habit Stack**")
-        med_input = st.checkbox("🧘 Meditation (5:10 AM)")
-        caff_input = st.checkbox("☕ Caffeine Cutoff (1 PM)")
-        work_input = st.checkbox("💪 Workout (6 PM)")
-        fast_input = st.checkbox("🤐 Fasting (8 PM)")
+        med_input = st.checkbox("🧘 Meditation")
+        caff_input = st.checkbox("☕ Caffeine Cutoff")
+        work_input = st.checkbox("💪 Workout")
+        fast_input = st.checkbox("🤐 Fasting")
 
     notes_input = st.text_area("Notes / Mindset")
     
-    # The Launch Button
     submitted = st.form_submit_button("🚀 COMMIT TO DATABASE")
 
     if submitted:
@@ -84,7 +87,7 @@ with st.form("entry_form", clear_on_submit=True):
             save_entry(date_input, weight_input, cal_input, wake_input, 
                       med_input, caff_input, work_input, fast_input, 
                       sleep_input, energy_input, notes_input)
-            st.toast("✅ Success! Data Logged.") # 'Toast' is a nice popup notification
+            st.toast("✅ Success! Data Logged.")
         except Exception as e:
             st.error(f"Error: {e}")
 
@@ -98,13 +101,11 @@ try:
     
     with col_left:
         st.subheader("📉 The Trend")
-        # Line chart of weight
         st.line_chart(df.set_index('Date')['Weight_lbs'])
         
     with col_right:
         st.subheader("📋 Recent History")
-        # Show just the key columns in the table to keep it clean
-        display_cols = ['Date', 'Weight_lbs', 'Calories_In', 'Workout_6PM']
+        display_cols = ['Date', 'Weight_lbs', 'Calories_In']
         st.dataframe(df[display_cols].tail(10), hide_index=True)
 
 except Exception as e:
