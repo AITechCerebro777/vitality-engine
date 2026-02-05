@@ -1,8 +1,21 @@
+import sys
+import subprocess
 import streamlit as st
 import pandas as pd
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 from datetime import datetime, date
+# --- BACKGROUND COACH STARTUP ---
+@st.cache_resource
+def start_vitality_coach():
+    """Checks if the Coach is running, and if not, kicks it awake."""
+    cmd = [sys.executable, "coach.py"]
+    subprocess.Popen(cmd)
+    return "Coach Running"
+
+# Fire the engine
+start_vitality_coach()
+# -------------------------------
 
 # --- CONFIGURATION ---
 st.set_page_config(page_title="Vitality Engine", page_icon="⚡", layout="wide")
