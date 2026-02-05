@@ -95,7 +95,7 @@ def routine_sleep_prep():
     send_vitality_signal(msg)
 
 # --- THE SCHEDULER ---
-schedule.every().day.at("17:00").do(routine_ignition)
+schedule.every().day.at("17:30").do(routine_ignition)
 schedule.every().day.at("05:10").do(routine_meditation)
 schedule.every().day.at("13:00").do(routine_caffeine_cut)
 schedule.every().day.at("18:00").do(routine_sweat_equity)
