@@ -98,7 +98,7 @@ def routine_sleep_prep():
 schedule.every().day.at("05:00").do(routine_ignition)
 schedule.every().day.at("05:10").do(routine_meditation)
 schedule.every().day.at("13:00").do(routine_caffeine_cut)
-schedule.every().day.at("17:38").do(routine_sweat_equity)
+schedule.every().day.at("17:40").do(routine_sweat_equity)
 schedule.every().day.at("20:00").do(routine_fasting_start)
 schedule.every().day.at("21:00").do(routine_sleep_prep)
 
